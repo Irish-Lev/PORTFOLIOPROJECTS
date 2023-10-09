@@ -1,38 +1,38 @@
 SELECT *
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 
 --GLOBAL KPI´s
 -- DEATHS
 SELECT SUM(total_deaths) AS TOTAL_DEATHS
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 
 SELECT SUM(total_deaths) AS TOTAL_DEATHS
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE YEAR(date) = 2020
 
 SELECT SUM(total_deaths) AS TOTAL_DEATHS
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE YEAR(date) = 2021
 
 SELECT date, SUM(total_deaths) AS TOTAL_DEATHS
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE YEAR(date) = 2022
 
 
 --CASES
 SELECT SUM(total_cases) AS CASES_TOTAL
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 
 SELECT SUM(total_cases) AS CASES_TOTAL
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE YEAR(date) = 2020
 
 SELECT SUM(total_cases) AS CASES_TOTAL
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE YEAR(date) = 2021
 
 SELECT SUM(total_cases) AS CASES_TOTAL
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE YEAR(date) = 2022
 
 --TOTAL CASES VS POPULATION
@@ -42,9 +42,20 @@ SELECT DISTINCT(location),
 	   population,
 	   total_cases,
 	   CAST((total_cases/population)*100 AS DECIMAL (10,2))AS CASES_PERCENTAGE
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 GROUP BY location, population, total_cases
 ORDER BY CASES_PERCENTAGE DESC
+
+-- PERCENTAGE OF TOTAL CASES AGAINST TOTAL DEATHS
+SELECT --date,
+       SUM(total_cases) AS cases_total,
+	   SUM(total_deaths) AS deaths_total,
+	   CAST(SUM(total_deaths)/SUM(total_cases)*100 AS DECIMAL (10,2)) AS PERCENTAGE
+FROM COVIDProject.dbo.DeathsCovid
+WHERE total_cases !=0
+      AND total_deaths !=0
+--GROUP BY date
+ORDER BY PERCENTAGE
 
 -- PERCENTAGE OF TOTAL NEW CASES AGAINST NEW DEATHS
 
@@ -52,7 +63,7 @@ SELECT date,
        SUM(new_cases) AS cases_new,
 	   SUM(new_deaths) AS deaths_new,
 	   CAST(SUM(new_deaths)/SUM(new_cases) AS DECIMAL (10,2)) AS PERCENTAGE
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE new_cases !=0
       AND new_deaths !=0
 GROUP BY date
@@ -63,7 +74,7 @@ ORDER BY date
 SELECT TOP 10 (location),
        population,
 	   SUM(total_deaths) AS TOTALDEATH_COUNT
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE continent <> '0'
 GROUP BY location, population
 ORDER BY TOTALDEATH_COUNT DESC
@@ -71,10 +82,10 @@ ORDER BY TOTALDEATH_COUNT DESC
 --TOP 10 COUNTRIES WITH THE HIGHEST INFECTION RATE
 
 SELECT TOP 10 (location),
-       population,
-	   MAX(total_cases) as HIGHESTINFECTION_COUNT,
-	   CAST((MAX(total_cases)/population)*100 AS DECIMAL (10,2)) AS PERC_POPULATIONINFECTED
-FROM DeathsCovid
+       SUM(population) AS Total_population,
+	   SUM(total_cases) as INFECTION_COUNT,
+	   CAST((SUM(total_cases)/SUM(population))*100 AS DECIMAL (10,2)) AS PERC_POPULATIONINFECTED
+FROM COVIDProject.dbo.DeathsCovid
 GROUP BY location, population
 ORDER BY PERC_POPULATIONINFECTED DESC
 
@@ -82,7 +93,7 @@ ORDER BY PERC_POPULATIONINFECTED DESC
 
 SELECT DISTINCT(continent),
        SUM(total_deaths) as TOTALDEATH_COUNT
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE continent <> '0'
 GROUP BY continent
 ORDER BY TOTALDEATH_COUNT DESC
@@ -93,7 +104,7 @@ SELECT DISTINCT(continent),
        population,
 	   MAX(total_cases) as HIGHESTINFECTION_COUNT,
 	   CAST((MAX(total_cases)/population)*100 AS DECIMAL (10,2)) AS PERC_POPULATIONINFECTED
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE continent <> '0'
 GROUP BY continent, population, iso_code
 ORDER BY PERC_POPULATIONINFECTED DESC
@@ -104,7 +115,7 @@ ORDER BY PERC_POPULATIONINFECTED DESC
 SELECT TOP 10 (location),
        population,
 	   SUM(total_cases) AS TOTAL_INFECTION
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE continent <> '0'
       AND continent = 'Europe'
 GROUP BY location, population
@@ -116,7 +127,7 @@ SELECT TOP 10 (location),
        population,
 	   MAX(total_cases) as HIGHESTINFECTION_COUNT,
 	   CAST((MAX(total_cases)/population)*100 AS DECIMAL (10,2)) AS PERC_POPULATIONINFECTED
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE continent <> '0'
       AND continent = 'Europe'
 GROUP BY location, population
@@ -127,7 +138,7 @@ ORDER BY PERC_POPULATIONINFECTED DESC
 SELECT TOP 10 (location),
        population,
 	   SUM(total_deaths) AS TOTALDEATH_COUNT
-FROM DeathsCovid
+FROM COVIDProject.dbo.DeathsCovid
 WHERE continent <> '0'
       AND continent = 'Europe'
 GROUP BY location, population
@@ -136,13 +147,13 @@ ORDER BY TOTALDEATH_COUNT DESC
 --VACCINATIONS
 
 SELECT *
-FROM VaccinationsCovid
+FROM COVIDProject.dbo.VaccinationsCovid
 
 --JOINS DeathsCovid AND VaccinationsCovid
 
 SELECT *
-FROM DeathsCovid DC
-JOIN VaccinationsCovid VC
+FROM COVIDProject.dbo.DeathsCovid DC
+JOIN COVIDProject.dbo.VaccinationsCovid VC
    ON DC.location = VC.location
    AND DC.date = VC.date
 
@@ -155,8 +166,8 @@ SELECT DC.continent,
 	   SUM(VC.total_vaccinations) AS TOTAL_VACCGIVEN,
 	   SUM(VC.people_vaccinated) AS VACCINATED_PEOPLE,
 	   SUM(VC.people_fully_vaccinated) AS FULLY_VACC_PEOPLE
-FROM DeathsCovid DC
-JOIN VaccinationsCovid VC
+FROM COVIDProject.dbo.DeathsCovid DC
+JOIN COVIDProject.dbo.VaccinationsCovid VC
    ON DC.location = VC.location
    --AND DC.date = VC.date
 WHERE DC.continent <> '0'
@@ -176,8 +187,8 @@ SELECT DC.continent,
 	   SUM(VC.total_vaccinations) AS TOTAL_VACCGIVEN,
 	   SUM(VC.people_vaccinated) AS VACCINATED_PEOPLE,
 	   SUM(VC.people_fully_vaccinated) AS FULLY_VACC_PEOPLE
-FROM DeathsCovid DC
-JOIN VaccinationsCovid VC
+FROM COVIDProject.dbo.DeathsCovid DC
+JOIN COVIDProject.dbo.VaccinationsCovid VC
    ON DC.location = VC.location
    --AND DC.date = VC.date
 WHERE DC.continent <> '0'
@@ -197,8 +208,8 @@ SELECT --DC.continent,
 	   SUM(VC.total_vaccinations) AS TOTAL_VACCGIVEN,
 	   SUM(VC.people_vaccinated) AS VACCINATED_PEOPLE,
 	   SUM(VC.people_fully_vaccinated) AS FULLY_VACC_PEOPLE
-FROM DeathsCovid DC
-JOIN VaccinationsCovid VC
+FROM COVIDProject.dbo.DeathsCovid DC
+JOIN COVIDProject.dbo.VaccinationsCovid VC
    ON DC.location = VC.location
    --AND DC.date = VC.date
 WHERE DC.continent <> '0'
@@ -220,8 +231,8 @@ SELECT DC.continent,
 	   SUM(VC.new_vaccinations)
 	     OVER (PARTITION BY DC.location
 		       ORDER BY DC.location, DC.date) AS RollingPeopleVaccinated
-FROM DeathsCovid DC
-JOIN VaccinationsCovid VC
+FROM COVIDProject.dbo.DeathsCovid DC
+JOIN COVIDProject.dbo.VaccinationsCovid VC
    ON DC.location = VC.location
    AND DC.date = VC.date
 WHERE DC.continent <> '0'
@@ -240,10 +251,10 @@ WITH PopVsVac (continent, location, date, population, new_vaccination, RollingPe
 	   SUM(VC.new_vaccinations)
 	     OVER (PARTITION BY DC.location
 		       ORDER BY DC.location, DC.date) AS RollingPeopleVaccinated
-  FROM DeathsCovid DC
-  JOIN VaccinationsCovid VC
-    ON DC.location = VC.location
-    AND DC.date = VC.date
+  FROM COVIDProject.dbo.DeathsCovid DC
+  JOIN COVIDProject.dbo.VaccinationsCovid VC
+   ON DC.location = VC.location
+   AND DC.date = VC.date
   WHERE DC.continent <> '0'
   )
 SELECT *,
@@ -272,33 +283,32 @@ SELECT DC.continent,
 	   SUM(VC.new_vaccinations)
 	     OVER (PARTITION BY DC.location
 		       ORDER BY DC.location, DC.date) AS RollingPeopleVaccinated
-  FROM DeathsCovid DC
-  JOIN VaccinationsCovid VC
-    ON DC.location = VC.location
-    AND DC.date = VC.date
+  FROM COVIDProject.dbo.DeathsCovid DC
+  JOIN COVIDProject.dbo.VaccinationsCovid VC
+   ON DC.location = VC.location
+   AND DC.date = VC.date
   WHERE DC.continent <> '0'
-
 SELECT *, 
        CAST((RollingPeopleVaccinated/Population)*100 AS DECIMAL (10,3)) AS PERC_of_RollingPeopleVaccinated
 FROM #Percent_Population_Vaccinated
 
 --CREATE VIEW FOR TABLEAU VIZ
 
-CREATE VIEW Percent_Population_Vaccinated AS
+CREATE VIEW Percent_Population_Vaccinated 
+AS
    SELECT DC.continent, 
-       DC.location,
-	   DC.date,
-	   DC.population,
-	   VC.new_vaccinations,
-	   SUM(VC.new_vaccinations)
-	     OVER (PARTITION BY DC.location
+          DC.location,
+	      DC.date,
+	      DC.population,
+	      VC.new_vaccinations,
+	      SUM(VC.new_vaccinations)
+	           OVER (PARTITION BY DC.location
 		       ORDER BY DC.location, DC.date) AS RollingPeopleVaccinated
-  FROM DeathsCovid DC
-  JOIN VaccinationsCovid VC
-    ON DC.location = VC.location
-    AND DC.date = VC.date
+  FROM COVIDProject.dbo.DeathsCovid DC
+   JOIN COVIDProject.dbo.VaccinationsCovid VC
+   ON DC.location = VC.location
+   AND DC.date = VC.date
   WHERE DC.continent <> '0'
 
-
-  SELECT *
-  FROM Percent_Population_Vaccinated
+SELECT *
+FROM Percent_Population_Vaccinated
